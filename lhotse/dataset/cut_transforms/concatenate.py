@@ -3,6 +3,7 @@ from typing import Optional, Sequence
 from lhotse import CutSet
 from lhotse.cut import Cut
 from lhotse.utils import Seconds
+import random
 
 
 class CutConcatenate:
@@ -12,7 +13,7 @@ class CutConcatenate:
     adding some silence between them to avoid a large number of padding frames that waste the computation.
     """
 
-    def __init__(self, gap: Seconds = 1.0, duration_factor: float = 1.0) -> None:
+    def __init__(self, gap: Seconds = 1.0, duration_factor: float = 1.0, randomized=False) -> None:
         """
         CutConcatenate's constructor.
 
@@ -23,11 +24,13 @@ class CutConcatenate:
         """
         self.gap = gap
         self.duration_factor = duration_factor
+        self.randomized = randomized
 
     def __call__(self, cuts: CutSet) -> CutSet:
         cuts = cuts.sort_by_duration(ascending=False)
+        gap = self.gap if not self.randomized else random.uniform(0.0, self.gap)
         return concat_cuts(
-            cuts, gap=self.gap, max_duration=cuts[0].duration * self.duration_factor
+            cuts, gap=gap, max_duration=cuts[0].duration * self.duration_factor
         )
 
 
